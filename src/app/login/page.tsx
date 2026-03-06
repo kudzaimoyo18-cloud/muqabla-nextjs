@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { useAuth } from '@/hooks/useAuth';
 import Input from '@/components/ui/Input';
 import Button from '@/components/ui/Button';
-import { colors } from '@/constants/colors';
+import { Logo } from '@/components/Logo';
 
 export default function LoginScreen() {
   const router = useRouter();
@@ -51,9 +51,8 @@ export default function LoginScreen() {
       <div className="w-full max-w-md">
         {/* Logo */}
         <div className="flex flex-col items-center mb-8">
-          <div className="w-20 h-20 rounded-2xl bg-primary flex items-center justify-center mb-6">
-            <span className="text-4xl font-bold text-white">M</span>
-          </div>
+          <Logo variant="default" />
+        </div>
           <h1 className="text-3xl font-bold text-text mb-2">Welcome Back</h1>
           <p className="text-base text-text-secondary">Sign in to continue</p>
         </div>

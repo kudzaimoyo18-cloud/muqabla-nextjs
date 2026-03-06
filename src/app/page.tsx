@@ -1,26 +1,30 @@
 import Link from 'next/link';
 import Button from '@/components/ui/Button';
+import { Logo } from '@/components/Logo';
 
 export default function HomePage() {
   return (
     <div className="min-h-screen bg-white flex flex-col items-center justify-center p-6">
       {/* Logo */}
-      <div className="w-24 h-24 rounded-[25px] bg-primary flex items-center justify-center mb-6">
-        <span className="text-5xl font-bold text-white">M</span>
+      <div className="mb-6">
+        <Logo variant="large" />
       </div>
 
-      {/* Title */}
-      <h1 className="text-4xl font-bold text-text mb-2">Muqabla</h1>
-      <p className="text-lg text-text-secondary mb-12">Your Career, Your Story</p>
-
       {/* CTA Button */}
-      <Link href="/login">
+      <Link href="/login" className="mt-12">
         <Button
           title="Get Started"
           size="large"
-          className="py-4 px-12"
+          fullWidth
         />
       </Link>
+
+      {/* Additional Info */}
+      <div className="mt-8 text-center">
+        <p className="text-sm text-text-secondary">
+          Video-first job interviews for the GCC market
+        </p>
+      </div>
     </div>
   );
 }
