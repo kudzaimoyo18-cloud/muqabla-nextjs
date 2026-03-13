@@ -1,59 +1,55 @@
 import React from 'react';
 import { cn } from '@/lib/utils';
 
-interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  title: string;
-  variant?: 'primary' | 'secondary' | 'outline' | 'ghost';
+export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+  variant?: 'primary' | 'secondary' | 'ghost' | 'danger' | 'outline';
   size?: 'small' | 'medium' | 'large';
-  disabled?: boolean;
-  loading?: boolean;
-  icon?: React.ReactNode;
-  iconPosition?: 'left' | 'right';
   fullWidth?: boolean;
+  loading?: boolean;
+  children: React.ReactNode;
 }
 
 export default function Button({
-  title,
   variant = 'primary',
   size = 'medium',
-  disabled = false,
-  loading = false,
-  icon,
-  iconPosition = 'left',
   fullWidth = false,
+  loading = false,
+  disabled,
   className,
+  children,
   ...props
 }: ButtonProps) {
-  const isDisabled = disabled || loading;
+  const baseStyles = 'font-semibold rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2';
 
-  const variantStyles = {
-    primary: 'bg-primary text-white hover:bg-primary-dark',
-    secondary: 'bg-accent text-white hover:bg-accent-dark',
-    outline: 'bg-transparent border-2 border-primary text-primary hover:bg-primary hover:text-white',
-    ghost: 'bg-transparent text-primary hover:bg-surface-secondary',
+  const variants = {
+    primary: 'bg-primary text-white hover:bg-primary-dark focus:ring-primary disabled:opacity-50 disabled:cursor-not-allowed',
+    secondary: 'bg-surface-secondary text-text hover:bg-border focus:ring-border disabled:opacity-50 disabled:cursor-not-allowed',
+    ghost: 'text-text hover:bg-surface-secondary focus:ring-border disabled:opacity-50 disabled:cursor-not-allowed',
+    danger: 'bg-error text-white hover:bg-red-700 focus:ring-error disabled:opacity-50 disabled:cursor-not-allowed',
+    outline: 'border-2 border-primary text-primary hover:bg-primary hover:text-white focus:ring-primary disabled:opacity-50 disabled:cursor-not-allowed',
   };
 
-  const sizeStyles = {
-    small: 'py-2 px-4 text-sm',
-    medium: 'py-3.5 px-6 text-base',
-    large: 'py-4.5 px-8 text-lg',
+  const sizes = {
+    small: 'px-3 py-1.5 text-sm',
+    medium: 'px-4 py-2 text-base',
+    large: 'px-6 py-3 text-lg',
   };
 
   return (
     <button
       className={cn(
-        'flex items-center justify-center rounded-xl gap-2 font-semibold transition-all',
-        variantStyles[variant],
-        sizeStyles[size],
+        baseStyles,
+        variants[variant],
+        sizes[size],
         fullWidth && 'w-full',
-        isDisabled && 'opacity-50 cursor-not-allowed',
+        loading && 'opacity-70 cursor-not-allowed',
         className
       )}
-      disabled={isDisabled}
+      disabled={disabled || loading}
       {...props}
     >
       {loading ? (
-        <div className="flex items-center justify-center">
+        <span className="flex items-center justify-center gap-2">
           <svg
             className="animate-spin h-5 w-5"
             xmlns="http://www.w3.org/2000/svg"
@@ -74,13 +70,10 @@ export default function Button({
               d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
             />
           </svg>
-        </div>
+          <span>Loading...</span>
+        </span>
       ) : (
-        <>
-          {icon && iconPosition === 'left' && icon}
-          <span>{title}</span>
-          {icon && iconPosition === 'right' && icon}
-        </>
+        children
       )}
     </button>
   );

@@ -355,6 +355,7 @@ export async function createVideoRecord(videoData: {
       ...videoData,
       status: 'processing',
       skills_detected: [],
+      ai_analyzed: false,
     })
     .select()
     .single();

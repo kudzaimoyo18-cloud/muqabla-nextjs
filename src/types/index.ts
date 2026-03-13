@@ -1,4 +1,4 @@
-// Muqabla TypeScript Types
+// Muqabla TypeScript Types with AI Features
 
 // ============ USER TYPES ============
 
@@ -48,6 +48,8 @@ export interface CandidateProfile {
   linkedin_verified: boolean;
   profile_views: number;
   applications_count: number;
+  ai_summary?: string; // AI-generated profile summary
+  ai_extracted_skills?: string[]; // AI-extracted skills from video
 }
 
 // ============ EMPLOYER TYPES ============
@@ -107,6 +109,7 @@ export interface Video {
   transcript_ar?: string;
   language?: string;
   skills_detected: string[];
+  ai_analyzed: boolean; // Whether AI has analyzed this video
   created_at: string;
 }
 
@@ -152,7 +155,7 @@ export interface Job {
 // Job with all relations loaded (for feed)
 export interface JobWithDetails extends Job {
   company: Company;
-  video: Video;
+  video?: Video;
 }
 
 // ============ APPLICATION TYPES ============
@@ -176,7 +179,8 @@ export interface Application {
   video?: Video;
   cover_message?: string;
   status: ApplicationStatus;
-  match_score?: number;
+  match_score?: number; // AI-generated match score (0-100)
+  ai_insights?: string; // AI-generated insights for employer
   viewed_at?: string;
   shortlisted_at?: string;
   rejected_at?: string;
@@ -213,6 +217,86 @@ export interface Message {
   content: string;
   is_read: boolean;
   created_at: string;
+}
+
+// ============ AI TYPES ============
+
+// AI Job Matching Result
+export interface AIMatchResult {
+  match_score: number; // 0-100
+  skill_match: number;
+  experience_match: number;
+  location_match: number;
+  matched_skills: string[];
+  missing_skills: string[];
+  insights: string[];
+}
+
+// AI Extracted Skill from Video/Text
+export interface AIExtractedSkill {
+  name: string;
+  category: 'technical' | 'soft' | 'industry' | 'language';
+  confidence: number; // 0-1
+  evidence?: string; // Where it was found
+}
+
+// AI Generated Profile Summary
+export interface AIProfileSummary {
+  summary: string;
+  key_strengths: string[];
+  career_highlights: string[];
+  personality_traits: string[];
+  recommended_roles: string[];
+}
+
+// AI Job Insights
+export interface AIJobInsights {
+  difficulty_level: 'easy' | 'medium' | 'hard';
+  candidate_pool_size: number;
+  competition_level: number; // 0-100
+  key_success_factors: string[];
+  suggested_preparation_tips: string[];
+}
+
+// AI Generated Interview Questions
+export interface AIIinterviewQuestion {
+  question: string;
+  category: 'technical' | 'behavioral' | 'situational';
+  expected_answer_points: string[];
+  tips_for_success: string;
+}
+
+// ============ NOTIFICATIONS ============
+
+export type NotificationType =
+  | 'match'
+  | 'application_viewed'
+  | 'interview_invitation'
+  | 'job_recommended'
+  | 'connection_request'
+  | 'ai_insight';
+
+export interface Notification {
+  id: string;
+  user_id: string;
+  type: NotificationType;
+  title: string;
+  message: string;
+  data?: Record<string, unknown>;
+  is_read: boolean;
+  created_at: string;
+}
+
+// ============ CONNECTIONS ============
+
+export interface Connection {
+  id: string;
+  user_id: string;
+  connected_user_id: string;
+  connected_user?: User;
+  status: 'pending' | 'accepted' | 'rejected';
+  created_at: string;
+  accepted_at?: string;
 }
 
 // ============ API RESPONSE TYPES ============
