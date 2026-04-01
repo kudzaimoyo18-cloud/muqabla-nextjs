@@ -83,7 +83,7 @@ export async function matchCandidateToJob(
 
     // Calculate skill match
     const candidateSkills = candidate.ai_extracted_skills || [];
-    const jobSkills = extractSkillsFromText(job.description + ' ' + job.requirements.join(' '));
+    const jobSkills = extractSkillKeywords(job.description + ' ' + job.requirements.join(' '));
     const matchedSkills = candidateSkills.filter(skill => jobSkills.includes(skill));
     const missingSkills = jobSkills.filter(skill => !candidateSkills.includes(skill));
     const skillMatch = jobSkills.length > 0
@@ -116,7 +116,7 @@ export async function matchCandidateToJob(
   }
 }
 
-function extractSkillsFromText(text: string): string[] {
+function extractSkillKeywords(text: string): string[] {
   const commonSkills = [
     'JavaScript', 'Python', 'Java', 'React', 'Angular', 'Vue.js',
     'Node.js', 'TypeScript', 'SQL', 'MongoDB', 'AWS', 'Docker',
@@ -225,7 +225,7 @@ export async function extractSkillsFromText(
   }
 
   try {
-    const skills = extractSkillsFromText(text);
+    const skills = extractSkillKeywords(text);
     return skills.map(skill => ({
       name: skill,
       category: categorizeSkill(skill),
