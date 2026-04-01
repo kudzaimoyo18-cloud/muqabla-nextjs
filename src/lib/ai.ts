@@ -382,7 +382,7 @@ export async function generateInterviewQuestions(
       .filter(line => line.trim().length > 0)
       .map((line, index) => ({
         question: line.replace(/^\d+\.\s*/, ''),
-        category: index % 3 === 0 ? 'technical' : index % 3 === 1 ? 'behavioral' : 'situational',
+        category: (index % 3 === 0 ? 'technical' : index % 3 === 1 ? 'behavioral' : 'situational') as 'technical' | 'behavioral' | 'situational',
         expected_answer_points: ['Demonstrate relevant experience', 'Show problem-solving skills'],
         tips_for_success: 'Be specific and use examples',
       }))
