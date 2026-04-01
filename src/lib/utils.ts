@@ -56,7 +56,7 @@ export function formatSalary(
     return `${formatNumber(min)} - ${formatNumber(max)}`;
   }
 
-  return formatNumber(min || max);
+  return formatNumber((min || max)!);
 }
 
 // ============ LABEL CONSTANTS ============
