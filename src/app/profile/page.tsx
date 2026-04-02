@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import {
   Video, Upload, X, Loader2, Edit3, MapPin, Briefcase, Plus, Trash2,
@@ -11,6 +11,14 @@ import { useAuthStore } from '@/stores/auth-store';
 import BottomNav from '@/components/layout/BottomNav';
 
 export default function ProfilePage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-[#0a0a0a]" />}>
+      <ProfileContent />
+    </Suspense>
+  );
+}
+
+function ProfileContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const isSetup = searchParams.get('setup') === 'true';

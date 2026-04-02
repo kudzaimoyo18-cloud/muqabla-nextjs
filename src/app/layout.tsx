@@ -1,4 +1,4 @@
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import { Inter } from 'next/font/google';
 import './globals.css';
 
@@ -8,9 +8,15 @@ const inter = Inter({
   display: 'swap',
 });
 
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 5,
+};
+
 export const metadata: Metadata = {
   title: 'Muqabla - AI-Powered Video Interviews',
-  description: 'Find your dream job in GCC with intelligent matching, video profiles, and AI-powered insights. Like Instagram for jobs, with LinkedIn professionalism.',
+  description: 'Find your dream job in GCC with intelligent matching, video profiles, and AI-powered insights.',
   keywords: ['jobs', 'GCC', 'Dubai', 'AI', 'video interviews', 'matching', 'recruitment'],
   authors: [{ name: 'Muqabla' }],
   creator: 'Muqabla',
@@ -29,11 +35,6 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: 'Muqabla - AI-Powered Video Interviews',
     description: 'Find your dream job with AI-powered matching',
-  },
-  viewport: {
-    width: 'device-width',
-    initialScale: 1,
-    maximumScale: 5,
   },
   robots: {
     index: true,
