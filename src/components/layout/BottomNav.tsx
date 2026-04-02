@@ -3,80 +3,51 @@
 import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { cn } from '@/lib/utils';
-import {
-  Home,
-  Briefcase,
-  MessageSquare,
-  Bell,
-  User,
-} from 'lucide-react';
+import { Home, Search, MessageSquare, User, Plus } from 'lucide-react';
 
-export interface BottomNavProps {
+const candidateNav = [
+  { href: '/feed', icon: Home, label: 'Home' },
+  { href: '/search', icon: Search, label: 'Discover' },
+  { href: '/messages', icon: MessageSquare, label: 'Inbox' },
+  { href: '/profile', icon: User, label: 'Profile' },
+];
+
+const employerNav = [
+  { href: '/employer/dashboard', icon: Home, label: 'Home' },
+  { href: '/employer/post-job', icon: Plus, label: 'Post' },
+  { href: '/employer/candidates', icon: Search, label: 'Candidates' },
+  { href: '/messages', icon: MessageSquare, label: 'Inbox' },
+  { href: '/profile', icon: User, label: 'Profile' },
+];
+
+interface BottomNavProps {
+  variant?: 'candidate' | 'employer';
   className?: string;
 }
 
-export default function BottomNav({ className }: BottomNavProps) {
+export default function BottomNav({ variant = 'candidate', className }: BottomNavProps) {
   const pathname = usePathname();
-
-  const navItems = [
-    {
-      href: '/dashboard',
-      icon: Home,
-      label: 'Home',
-    },
-    {
-      href: '/jobs',
-      icon: Briefcase,
-      label: 'Jobs',
-    },
-    {
-      href: '/messages',
-      icon: MessageSquare,
-      label: 'Messages',
-    },
-    {
-      href: '/notifications',
-      icon: Bell,
-      label: 'Alerts',
-    },
-    {
-      href: '/profile/me',
-      icon: User,
-      label: 'Profile',
-    },
-  ];
+  const navItems = variant === 'employer' ? employerNav : candidateNav;
 
   return (
-    <nav
-      className={cn(
-        'fixed bottom-0 left-0 right-0 bg-white border-t border-border',
-        'safe-area-inset-bottom',
-        className
-      )}
-    >
-      <div className="flex items-center justify-around px-2 py-2">
+    <nav className={`fixed bottom-0 left-0 right-0 bg-[#0a0a0a]/95 backdrop-blur-xl border-t border-white/[0.06] safe-area-inset-bottom z-50 ${className || ''}`}>
+      <div className="flex items-center justify-around px-2 py-2 max-w-lg mx-auto">
         {navItems.map((item) => {
-          const isActive = pathname === item.href;
+          const isActive = pathname === item.href || pathname.startsWith(item.href + '/');
 
           return (
             <Link
               key={item.href}
               href={item.href}
-              className="flex flex-col items-center justify-center min-w-[60px] py-1"
+              className="flex flex-col items-center justify-center min-w-[48px] py-1 group"
             >
-              <item.icon
-                className={cn(
-                  'w-6 h-6 transition-colors',
-                  isActive ? 'text-primary' : 'text-text-tertiary'
+              <div className={`relative p-1.5 rounded-xl transition-colors ${isActive ? 'text-emerald-400' : 'text-gray-500 group-hover:text-gray-300'}`}>
+                <item.icon className="w-5 h-5" strokeWidth={isActive ? 2.5 : 2} />
+                {isActive && (
+                  <div className="absolute -bottom-0.5 left-1/2 -translate-x-1/2 w-1 h-1 bg-emerald-400 rounded-full" />
                 )}
-              />
-              <span
-                className={cn(
-                  'text-xs mt-1 font-medium transition-colors',
-                  isActive ? 'text-primary' : 'text-text-tertiary'
-                )}
-              >
+              </div>
+              <span className={`text-[10px] mt-0.5 font-medium ${isActive ? 'text-emerald-400' : 'text-gray-600'}`}>
                 {item.label}
               </span>
             </Link>

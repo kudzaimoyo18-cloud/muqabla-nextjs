@@ -1,264 +1,128 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { MessageSquare, Search, Loader2 } from 'lucide-react';
+import { supabase } from '@/lib/supabase';
+import { useAuthStore } from '@/stores/auth-store';
 import BottomNav from '@/components/layout/BottomNav';
-import Avatar from '@/components/ui/Avatar';
-import AIBadge from '@/components/ui/AIBadge';
-import Input from '@/components/ui/Input';
-import { Search, MoreVertical, Send, Lightbulb, ArrowRight, Bot } from 'lucide-react';
-import { formatDate } from '@/lib/utils';
-import type { Conversation, Message } from '@/types';
+
+interface Conversation {
+  id: string;
+  other_user_name: string;
+  last_message: string;
+  last_message_at: string;
+  unread: boolean;
+}
+
+function timeAgo(dateStr: string) {
+  const diff = Date.now() - new Date(dateStr).getTime();
+  const mins = Math.floor(diff / 60000);
+  if (mins < 60) return `${mins}m`;
+  const hrs = Math.floor(mins / 60);
+  if (hrs < 24) return `${hrs}h`;
+  const days = Math.floor(hrs / 24);
+  return `${days}d`;
+}
 
 export default function MessagesPage() {
-  const [conversations] = useState<Conversation[]>([
-    {
-      id: '1',
-      application_id: 'app1',
-      last_message: {
-        id: 'msg1',
-        conversation_id: '1',
-        sender_id: 'employer1',
-        content: 'Thank you for applying! We reviewed your video profile and are impressed.',
-        is_read: true,
-        created_at: new Date(Date.now() - 5 * 60 * 1000).toISOString(),
-      },
-      unread_count: 0,
-      created_at: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
-    },
-    {
-      id: '2',
-      application_id: 'app2',
-      last_message: {
-        id: 'msg2',
-        conversation_id: '2',
-        sender_id: 'employer2',
-        content: "Your AI match score was excellent! We'd love to schedule an interview.",
-        is_read: false,
-        created_at: new Date(Date.now() - 30 * 60 * 1000).toISOString(),
-      },
-      unread_count: 1,
-      created_at: new Date(Date.now() - 3 * 60 * 60 * 1000).toISOString(),
-    },
-  ]);
+  const { user, profile, initialize } = useAuthStore();
+  const [conversations, setConversations] = useState<Conversation[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState('');
 
-  const [selectedConversation, setSelectedConversation] = useState<Conversation | null>(null);
-  const [messageText, setMessageText] = useState('');
+  useEffect(() => { initialize(); }, [initialize]);
 
-  const handleSendMessage = () => {
-    if (messageText.trim()) {
-      // In production, send message to backend
-      console.log('Sending message:', messageText);
-      setMessageText('');
+  useEffect(() => {
+    if (user) loadConversations();
+  }, [user]);
+
+  const loadConversations = async () => {
+    setLoading(true);
+    try {
+      const { data, error } = await supabase
+        .from('conversations')
+        .select('*')
+        .or(`user1_id.eq.${user!.id},user2_id.eq.${user!.id}`)
+        .order('updated_at', { ascending: false });
+
+      if (error) throw error;
+
+      const formatted: Conversation[] = (data || []).map((conv: any) => ({
+        id: conv.id,
+        other_user_name: conv.user1_id === user!.id ? 'User' : 'User',
+        last_message: conv.last_message || 'No messages yet',
+        last_message_at: conv.updated_at || conv.created_at,
+        unread: false,
+      }));
+
+      setConversations(formatted);
+    } catch (error) {
+      console.error('Load conversations error:', error);
+    } finally {
+      setLoading(false);
     }
   };
 
+  const filtered = conversations.filter((c) =>
+    c.other_user_name.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
   return (
-    <div className="min-h-screen bg-background pb-20">
-      {selectedConversation ? (
-        <>
-          {/* Chat View */}
-          <div className="h-screen flex flex-col">
-            {/* Chat Header */}
-            <div className="sticky top-0 bg-white border-b border-border p-4">
-              <div className="flex items-center gap-3">
-                <button
-                  onClick={() => setSelectedConversation(null)}
-                  className="p-2 -ml-2 rounded-full hover:bg-surface-secondary"
-                >
-                  <ArrowRight className="w-5 h-5 rotate-180" />
-                </button>
-                <div className="flex-1">
-                  <h2 className="text-base font-semibold text-text">
-                    TechCorp HR
-                  </h2>
-                  <p className="text-xs text-text-secondary">Senior Developer Role</p>
-                </div>
-                <button className="p-2 rounded-full hover:bg-surface-secondary">
-                  <MoreVertical className="w-5 h-5" />
-                </button>
-              </div>
-            </div>
+    <div className="min-h-screen bg-[#0a0a0a] pb-24">
+      <div className="sticky top-0 z-40 bg-[#0a0a0a]/95 backdrop-blur-xl border-b border-white/[0.06] px-6 py-4">
+        <h1 className="text-lg font-semibold text-white mb-3">Messages</h1>
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Search conversations..."
+            className="w-full bg-[#111] border border-white/[0.06] rounded-lg pl-10 pr-4 py-2.5 text-sm text-white placeholder-gray-600 focus:border-emerald-500/50 focus:ring-0"
+          />
+        </div>
+      </div>
 
-            {/* AI Suggestion */}
-            <div className="mx-4 mt-4">
-              <div className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl p-3 border border-purple-100">
-                <div className="flex items-center gap-2 mb-2">
-                  <Bot className="w-4 h-4 text-purple-600" />
-                  <span className="text-xs font-semibold text-text">
-                    AI Reply Suggestion
-                  </span>
-                  <AIBadge variant="icon" size="small" />
-                </div>
-                <p className="text-xs text-text-secondary mb-2">
-                  Based on conversation, here are some suggested responses:
-                </p>
-                <div className="space-y-1.5">
-                  <button className="w-full text-left px-3 py-2 bg-white rounded-lg text-xs text-text hover:border hover:border-purple-200 transition-all">
-                    "Thank you for reviewing my application! I'm excited about this opportunity."
-                  </button>
-                  <button className="w-full text-left px-3 py-2 bg-white rounded-lg text-xs text-text hover:border hover:border-purple-200 transition-all">
-                    "I'd be happy to schedule an interview at your convenience."
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            {/* Messages */}
-            <div className="flex-1 overflow-y-auto p-4 space-y-4">
-              {/* Received Message */}
-              <div className="flex gap-2">
-                <Avatar
-                  initials="TC"
-                  size="medium"
-                  className="flex-shrink-0"
-                />
-                <div className="max-w-[70%]">
-                  <div className="bg-surface-secondary rounded-2xl rounded-tl-sm px-4 py-2">
-                    <p className="text-sm text-text">
-                      Thank you for applying! We reviewed your video profile and are impressed with your technical skills.
-                    </p>
-                  </div>
-                  <p className="text-xs text-text-tertiary mt-1 ml-1">
-                    10:30 AM
-                  </p>
-                </div>
-              </div>
-
-              {/* Sent Message */}
-              <div className="flex gap-2 justify-end">
-                <div className="max-w-[70%]">
-                  <div className="bg-primary rounded-2xl rounded-tr-sm px-4 py-2">
-                    <p className="text-sm text-white">
-                      Thank you! I'm very interested in this position and would love to learn more.
-                    </p>
-                  </div>
-                  <p className="text-xs text-text-tertiary mt-1 mr-1 text-right">
-                    10:35 AM
-                  </p>
-                </div>
-              </div>
-
-              {/* Received Message */}
-              <div className="flex gap-2">
-                <Avatar
-                  initials="TC"
-                  size="medium"
-                  className="flex-shrink-0"
-                />
-                <div className="max-w-[70%]">
-                  <div className="bg-surface-secondary rounded-2xl rounded-tl-sm px-4 py-2">
-                    <p className="text-sm text-text">
-                      Great! Your AI match score was excellent (95%). We'd love to schedule an interview this week. What times work for you?
-                    </p>
-                  </div>
-                  <p className="text-xs text-text-tertiary mt-1 ml-1">
-                    10:40 AM
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            {/* Message Input */}
-            <div className="sticky bottom-0 bg-white border-t border-border p-4">
-              <div className="flex items-center gap-2">
-                <div className="flex-1">
-                  <Input
-                    placeholder="Type a message..."
-                    value={messageText}
-                    onChange={(e) => setMessageText(e.target.value)}
-                    onKeyPress={(e) => {
-                      if (e.key === 'Enter') handleSendMessage();
-                    }}
-                  />
-                </div>
-                <button
-                  onClick={handleSendMessage}
-                  disabled={!messageText.trim()}
-                  className="p-3 rounded-full bg-primary text-white disabled:opacity-50 disabled:cursor-not-allowed hover:bg-primary-dark transition-colors"
-                >
-                  <Send className="w-5 h-5" />
-                </button>
-              </div>
-            </div>
+      <div className="px-6 py-4">
+        {loading ? (
+          <div className="flex items-center justify-center py-20">
+            <Loader2 className="w-6 h-6 animate-spin text-emerald-400" />
           </div>
-        </>
-      ) : (
-        <>
-          {/* Conversations List */}
-          <div className="sticky top-0 bg-white/95 backdrop-blur-sm border-b border-border z-40">
-            <div className="p-4">
-              <h1 className="text-xl font-bold text-text mb-3">Messages</h1>
-              <Input
-                placeholder="Search conversations..."
-                leftIcon={<Search className="w-5 h-5" />}
-              />
-            </div>
+        ) : filtered.length === 0 ? (
+          <div className="text-center py-20">
+            <MessageSquare className="w-10 h-10 text-gray-600 mx-auto mb-3" />
+            <h2 className="text-lg font-semibold text-white mb-1">No messages yet</h2>
+            <p className="text-sm text-gray-500">
+              {profile?.user_type === 'candidate'
+                ? 'Messages from employers will appear here'
+                : 'Start conversations with candidates'}
+            </p>
           </div>
-
-          <div className="p-4">
-            {conversations.length === 0 ? (
-              <div className="bg-white rounded-xl p-6 text-center border border-border">
-                <Bot className="w-12 h-12 text-text-tertiary mx-auto mb-3" />
-                <h3 className="text-sm font-semibold text-text mb-1">
-                  No Messages Yet
-                </h3>
-                <p className="text-xs text-text-secondary">
-                  Start applying to jobs to start conversations
-                </p>
-              </div>
-            ) : (
-              <div className="space-y-3">
-                {conversations.map((conversation) => (
-                  <button
-                    key={conversation.id}
-                    onClick={() => setSelectedConversation(conversation)}
-                    className="w-full bg-white rounded-xl p-4 border border-border hover:border-primary hover:shadow-md transition-all text-left"
-                  >
-                    <div className="flex items-start gap-3">
-                      <div className="relative">
-                        <Avatar
-                          initials="TC"
-                          size="large"
-                        />
-                        {conversation.unread_count > 0 && (
-                          <div className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-primary flex items-center justify-center">
-                            <span className="text-xs text-white font-semibold">
-                              {conversation.unread_count}
-                            </span>
-                          </div>
-                        )}
-                      </div>
-
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-start justify-between gap-2 mb-1">
-                          <div className="flex-1">
-                            <h3 className="text-sm font-semibold text-text">
-                              TechCorp HR
-                            </h3>
-                            <p className="text-xs text-text-secondary">
-                              Senior Developer • Dubai
-                            </p>
-                          </div>
-                          <span className="text-xs text-text-tertiary whitespace-nowrap">
-                            {formatDate(conversation.last_message?.created_at || conversation.created_at)}
-                          </span>
-                        </div>
-
-                        <p className="text-sm text-text-secondary truncate">
-                          {conversation.last_message?.content}
-                        </p>
-                      </div>
-                    </div>
-                  </button>
-                ))}
-              </div>
-            )}
+        ) : (
+          <div className="space-y-1">
+            {filtered.map((conv) => (
+              <button
+                key={conv.id}
+                className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-white/[0.02] transition-colors text-left"
+              >
+                <div className="w-11 h-11 bg-emerald-500/10 rounded-full flex items-center justify-center shrink-0">
+                  <span className="text-sm font-bold text-emerald-400">{conv.other_user_name.charAt(0)}</span>
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center justify-between">
+                    <span className={`text-sm font-medium ${conv.unread ? 'text-white' : 'text-gray-300'}`}>{conv.other_user_name}</span>
+                    <span className="text-xs text-gray-600">{timeAgo(conv.last_message_at)}</span>
+                  </div>
+                  <p className={`text-xs truncate mt-0.5 ${conv.unread ? 'text-gray-300' : 'text-gray-500'}`}>{conv.last_message}</p>
+                </div>
+                {conv.unread && <div className="w-2 h-2 bg-emerald-400 rounded-full shrink-0" />}
+              </button>
+            ))}
           </div>
-        </>
-      )}
+        )}
+      </div>
 
-      {/* Bottom Navigation */}
-      {!selectedConversation && <BottomNav />}
+      <BottomNav variant={profile?.user_type === 'employer' ? 'employer' : 'candidate'} />
     </div>
   );
 }
